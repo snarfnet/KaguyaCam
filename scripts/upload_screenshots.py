@@ -47,6 +47,19 @@ def get_set(loc_id, disp):
     return r.json()['data']['id']
 
 
+def put_with_retry(method, url, headers, chunk, tries=5):
+    for attempt in range(tries):
+        try:
+            resp = requests.request(method, url, headers=headers, data=chunk, timeout=120)
+            if resp.status_code < 300:
+                return resp
+            print('    blob status', resp.status_code, 'retry', attempt + 1)
+        except requests.exceptions.RequestException as e:
+            print('    blob error', type(e).__name__, 'retry', attempt + 1)
+        time.sleep(3 * (attempt + 1))
+    raise RuntimeError(f'blob upload failed after {tries} tries')
+
+
 def upload_one(set_id, path):
     data = open(path, 'rb').read()
     fname = os.path.basename(path)
@@ -58,7 +71,7 @@ def upload_one(set_id, path):
     for op in d['attributes']['uploadOperations']:
         headers = {h['name']: h['value'] for h in op.get('requestHeaders', [])}
         chunk = data[op['offset']:op['offset'] + op['length']]
-        requests.request(op['method'], op['url'], headers=headers, data=chunk)
+        put_with_retry(op['method'], op['url'], headers, chunk)
     md5 = hashlib.md5(data).hexdigest()
     r = api('PATCH', f'/appScreenshots/{sid}', {'data': {'type': 'appScreenshots', 'id': sid,
         'attributes': {'uploaded': True, 'sourceFileChecksum': md5}}})
