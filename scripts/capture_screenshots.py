@@ -21,8 +21,8 @@ IPAD_SIZE = (2048, 2732)
 SCREENS = ["1", "2", "3"]
 
 
-def sh(*a):
-    return subprocess.run(a, check=True, capture_output=True, text=True)
+def sh(*a, timeout=180):
+    return subprocess.run(a, check=True, capture_output=True, text=True, timeout=timeout)
 
 
 def list_devices():
@@ -45,9 +45,17 @@ def pick(devs, prefs):
     return None
 
 
-def ensure_booted(udid):
-    subprocess.run(["xcrun", "simctl", "boot", udid], capture_output=True)
-    sh("xcrun", "simctl", "bootstatus", udid, "-b")
+def ensure_booted(udid, tries=3):
+    for attempt in range(tries):
+        subprocess.run(["xcrun", "simctl", "boot", udid], capture_output=True)
+        try:
+            sh("xcrun", "simctl", "bootstatus", udid, "-b", timeout=300)
+            return
+        except subprocess.TimeoutExpired:
+            print("  boot stalled, shutting down and retrying", attempt + 1)
+            subprocess.run(["xcrun", "simctl", "shutdown", udid], capture_output=True)
+            time.sleep(5)
+    raise RuntimeError(f"simulator {udid} failed to boot after {tries} tries")
 
 
 def capture(udid, screen, out):
