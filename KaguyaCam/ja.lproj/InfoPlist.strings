@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "かぐや姫カメラ";
+"NSCameraUsageDescription" = "夜空にカメラを向けて、今の月の方角と満ち欠けを重ねて表示するために使用します。映像の保存・送信は行いません。";
+"NSLocationWhenInUseUsageDescription" = "観測地点から見た月の方角と高度を正しく計算するために現在地を使用します。位置情報の保存・送信は行いません。";

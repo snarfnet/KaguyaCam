@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "Kaguya Moon Camera";
+"NSCameraUsageDescription" = "Used to overlay the Moon's current direction and phase on the night sky. No video is saved or sent.";
+"NSLocationWhenInUseUsageDescription" = "Used to correctly compute the Moon's direction and altitude from your location. No location data is saved or sent.";
